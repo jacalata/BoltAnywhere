@@ -46,5 +46,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-#Python virtualenv files
-.h
+# Python included files
+*.h
+Lib
+Scripts
+__pycache__
+selenium
+pip-selfcheck.json
+out
