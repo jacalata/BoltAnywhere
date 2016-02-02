@@ -1,0 +1,3 @@
+selenium==2.49.2
+virtualenv==13.1.2
+virtualenvwrapper-win==1.2.1
