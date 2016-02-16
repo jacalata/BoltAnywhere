@@ -19,10 +19,10 @@ h2 {
 }
 table {
   border-spacing: 3px;
+  font-size: 70%;
 }
 thead {
 	font-weight: 150;
-	font-size: 80%;
 }
 
 td, th {
