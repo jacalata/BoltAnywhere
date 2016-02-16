@@ -16,7 +16,7 @@ install:
     stage: deploy
     script: 
     - apt-get install -y python
-    - apt-cache search pip
+    - apt-cache search p
     - apt-get install -y pip
     - pip install -r requirements.txt
 test:
