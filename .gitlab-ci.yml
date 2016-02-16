@@ -15,8 +15,10 @@ pages:
 install: 
     stage: deploy
     script: 
-    - apt-get install -y python pip
-    - "pip install -r requirements.txt"
+    - apt-get install -y python
+    - apt-cache search pip
+    - apt-get install -y pip
+    - pip install -r requirements.txt
 test:
     stage: deploy
     script: nosetests tests/proof_of_concept.py
