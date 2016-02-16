@@ -4,11 +4,9 @@ pages:
  # - mkdir .public
  # - cp -r * .public
  # - mv .public public
-  - cp -r data/* public
-  - dir public
   artifacts:
     paths:
-    - public
+    - data
   only:
   - master
 
