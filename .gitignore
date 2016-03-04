@@ -54,3 +54,6 @@ __pycache__
 selenium
 pip-selfcheck.json
 out
+
+# node installed packages
+node_modules

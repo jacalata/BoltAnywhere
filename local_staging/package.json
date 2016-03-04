@@ -1,0 +1,8 @@
+{
+	"name": "local_staging",
+	"version": "0.0.1",
+	"devDependencies": {
+		"express": "~4.13.4",
+		"minimist": "~1.2.0"
+	}
+}

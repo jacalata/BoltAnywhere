@@ -182,7 +182,7 @@ def main(argv):
 
 	logging.info("connecting to %s", url)
 
-	driver = webdriver.Chrome()
+	driver = webdriver.Firefox()
 	driver.get(url)
 
 	time.sleep(2)
