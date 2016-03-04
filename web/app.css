@@ -39,9 +39,18 @@ input[type=checkbox]:focus + label:before {
   outline: 0;
 }
 
+.container {
+  height: 250px;
+  overflow-y: scroll
+}
+
 table {
   height: 200px;
   overflow: scroll
+}
+
+table>line {
+  stroke: #fff;
 }
 .btn {
   font-size: 140%;
@@ -100,13 +109,22 @@ label {
   padding: 100px 0;
 }
 
+.time-label {
+  height: 15px;
+  font-size: 15px;
+}
+
+.date-label {
+  font-size: 25px; 
+}
 
 # d3 heatmap styles
-
 
 #chart{
   width: 800px;
   margin: 0 auto;
+  border: 1px solid #5f5;
+  height: 100px;
 }
 .background {
   fill: #eee;
