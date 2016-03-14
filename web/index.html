@@ -2,7 +2,11 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<meta content="utf-8" http-equiv="encoding">
+		<meta content="utf-8" http-equiv="encoding"> <!-- need this for d3? -->
+		
+		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
 		<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
 		<script src="//cdn.auth0.com/js/lock-7.12.min.js"></script>
 
@@ -21,9 +25,12 @@
 
 		<script src="price-heatmap.js" type="text/javascript"></script>
 		<script src="google-analytics.js" type="text/javascript" /> 
-		<script src="schedules.json" type="text/javascript" />
-		<script src="shittytable.js" type="text/javascript" /> 
-
+		
+		<!-- 
+		called directly in price-heatmap.js <<script src="https://boltproject.gitlab.io/BoltScraper/schedules.json" type="text/javascript" />
+		unnecessary with price-heatmap.js <script src="shittytable.js" type="text/javascript" /> 
+		-->
+		
 		<!-- React libs -->
 		<!-- The core React library -->
 		<script src="//fb.me/react-0.14.3.js"></script>

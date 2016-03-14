@@ -1,3 +1,10 @@
+var Download = require('download');
+ 
+new Download({mode: '755'})
+	.get('https://boltproject.gitlab.io/BoltScraper/schedules.json')
+	.dest('data')
+	.run();
+
 var express = require('express');
 var app = express();
 
