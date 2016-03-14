@@ -4,10 +4,9 @@
   "description": "single environment for initial deploy",
   "repository": "https://gitlab.com/groups/BoltProject",
   "license": "none granted",
-  "devDependencies": {
+  "dependencies": {
 	"express": "^4.13.4",
 	"gulp": "~3.9.1",
-	"jest-cli": "~0.9.0",
 	"minimist": "^1.2.0"
   }
 }
