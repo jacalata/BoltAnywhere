@@ -51,7 +51,7 @@ var y_pos_days_down = function(d) {
   var previous_month_space = mnth == 0 ? (x_0 - 30) : x_days(31 - start_day) 
   var this_month_days = mnth == 0 ? this_day(d) : days
   var position = previous_month_space + x_days(this_month_days);
-  console.log(d, mnth, position);
+ // console.log(d, mnth, position);
   return position;
 }
 
@@ -91,12 +91,12 @@ console.log(start_date, start_month, start_day)
     .attr("fill", function(d) { return color(price_val(d))})
   items.append('text')
     .text(function(d) { return d.price.split('.')[0]})
-    .attr("x", function(d) { return x_pos_hours_across(d)+ 2})
-    .attr("y", function(d) { return y_pos_days_down(d) + cellHeight - 4})
+    .attr("x", function(d) { return x_pos_hours_across(d) + 4})
+    .attr("y", function(d) { return y_pos_days_down(d) + cellHeight - 6})
     .attr("width", cellWidth)
     .attr("height", cellHeight)
   items.append("svg:title")
-    .text(function(d) { return d.price + " " + d.date + " " + d.dep_time})
+    .text(function(d) { return d.price + ", departs at " + d.dep_time})
 
 console.log("items createds")
 
