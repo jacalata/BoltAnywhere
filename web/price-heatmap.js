@@ -46,20 +46,6 @@ var y_loc = function(d) {
   return position; 
 } 
 
-var y_pos_days_down = function(d) {
- // console.log(d);
-  if (!d["dep_time"]) return 0; //why are we getting an empty object here
-  var mnth = this_month(d)
-  var days = day_of_month(date_obj(d));
-  var total_days = date_obj(d) - start_date
- // console.log(date_obj(d), start_date, total_days);
-  var previous_month_space = mnth ==  x_days(31 - start_day) 
-  var this_month_days = mnth == 0 ? this_day(d) : days
-  var position = previous_month_space + x_days(this_month_days);
- //console.log(d, mnth, position);
-  return position;
-}
-
 
 var x_pos_hours_across = function(d){
  // console.log(d);
@@ -72,9 +58,6 @@ var x_pos_hours_across = function(d){
 d3.json("schedules.json", function(error, json) {
 
   scraped_at = json["scraped_at"]
-  parser_scraped_at = scraped_at.slice(0,4) + "-" + scraped_at.slice(4,6) + "-" + scraped_at.slice(6,8)
-  var date_scraped_at = new Date(parser_scraped_at);
-  console.log(scraped_at, parser_scraped_at, date_scraped_at)
   route = json.route
   data = json.buses//.slice(150,201)
   var end = data.length-1;
@@ -102,11 +85,15 @@ d3.json("schedules.json", function(error, json) {
               .append("svg")
               .attr("width", width)
               .attr("height", height);
+  if (scraped_at){
+
+  parser_scraped_at = scraped_at.slice(0,4) + "-" + scraped_at.slice(4,6) + "-" + scraped_at.slice(6,8)
+  var date_scraped_at = new Date(parser_scraped_at);
   svg.append('text')
       .text('(Prices last updated at ' + date_scraped_at.toDateString() + ")")
       .attr('x', 50)
       .attr('y', get_y_for_date(0) - 80)
-
+}
   var items = svg.selectAll("g")
      .data(data)
      .enter().append('g')

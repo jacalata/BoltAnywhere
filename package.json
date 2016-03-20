@@ -10,5 +10,8 @@
     "gulp": "~3.9.1",
     "jade": "^1.11.0",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "hash-files": "^1.1.0"
   }
 }
