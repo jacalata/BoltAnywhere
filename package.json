@@ -5,13 +5,13 @@
   "repository": "https://gitlab.com/groups/BoltProject",
   "license": "none granted",
   "dependencies": {
-    "download": "^4.4.3",
-    "express": "^4.13.4",
-    "gulp": "~3.9.1",
-    "jade": "^1.11.0",
-    "minimist": "^1.2.0"
+	"download": "^4.4.3",
+	"express": "^4.13.4",
+	"gulp": "~3.9.1",
+	"jade": "^1.11.0",
+	"minimist": "^1.2.0",
+	"hash-files": "^1.1.0"
   },
   "devDependencies": {
-    "hash-files": "^1.1.0"
   }
 }
