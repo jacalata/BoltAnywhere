@@ -32,8 +32,9 @@ var this_month = function(d) { return month(date_obj(d)) - start_month }
 var this_day = function(d) { return day_of_month(date_obj(d)) - start_day }
 
 
-var x_0 = 60;
-var x_days = function(i) { return x_0 + (cellHeight + 1) * i }
+var x_labels = 60;
+var x_0 = 120;
+var x_days = function(i) { return x_labels; } // x_0 + (cellHeight + 1) * i }
 var x_loc = function(d) { return x_days(day_of_month(date_obj(d) - 5) )}
 var y_loc = function(d) { 
   var mnth = this_month(d)
@@ -47,12 +48,6 @@ var y_loc = function(d) {
 } 
 
 
-var x_pos_hours_across = function(d){
- // console.log(d);
-  if (!d["dep_time"]) return 0; //why are we getting an empty object here
-  var hrs = dep_time_obj(d).getHours();
-  return x_0 + (cellWidth + 1) * (hrs - 5);
-}
 
 
 d3.json("schedules.json", function(error, json) {
@@ -63,22 +58,28 @@ d3.json("schedules.json", function(error, json) {
   var end = data.length-1;
   var first_day = new Date(data[0].date);
   var last_day = new Date(data[end].date);
-  var date_range = Math.floor(last_day - first_day ) / 86400000; //ugh http://stackoverflow.com/questions/542938/how-do-i-get-the-number-of-days-between-two-dates-in-javascript
-  height = 100 + 26 * date_range
+  //ugh http://stackoverflow.com/questions/542938/how-do-i-get-the-number-of-days-between-two-dates-in-javascript
+  // todo use moment.js instead of eugh agh hack ew
+  var date_range = Math.floor(last_day - first_day ) / 86400000; height = 100 + 26 * date_range
 
 
   var y = d3.time.scale().domain([first_day, last_day]).range([100, height]);
   var get_y_for_date = function(d) { if (!d.date) return 100; return y(new Date(d.date))}
-    start_date = date_obj(data[0])
+
+  var x = d3.scale.linear().domain([6, 20]).range([x_0, width-x_0])
+  var get_x_for_time = function(d) { if (!d.date) return x_0; return x(dep_time_obj(d).getHours())}
+
+  var colors = ['green'].concat(colorbrewer.PuBu[4].reverse()).concat('grey')
+  var color = d3.scale.linear()
+      .domain([0, 5, 16, 25, 40, Number.MAX_SAFE_INTEGER])
+      .range(colors);
+
+
+  start_date = date_obj(data[0])
   last_date = date_obj(data[end])
   start_month = month(start_date)
   start_day = day_of_month(start_date)
-//  console.log(start_date, start_month, start_day)
- // console.log(last_date);
 
-  var color = d3.scale.linear()
-      .domain([0, 16, 25, 40])
-      .range(colorbrewer.PuBu[4].reverse());
 
   //Create SVG element
   var svg = d3.select("#d3-container")
@@ -98,18 +99,18 @@ d3.json("schedules.json", function(error, json) {
      .data(data)
      .enter().append('g')
   items.append("rect")
-    .attr("x", function(d) { return x_pos_hours_across(d) })
-    .attr("y", function(d) { var y_val = get_y_for_date(d); return y_val;})//return y_pos_days_down(d) })
+    .attr("x", function(d) { return get_x_for_time(d) })
+    .attr("y", function(d) { return get_y_for_date(d);})
     .attr("width", cellWidth)
     .attr("height", cellHeight)
     .attr("fill", function(d) { return color(price_val(d))})
   items.append('text')
     .text(function(d) { 
-      (d.price && d.price.indexOf('.') > 0) ? val = d.price.split('.')[0] : val = d.price | "";
+      (d.price && d.price.indexOf('.') > 0) ? val = d.price.split('.')[0] : val = "SOLD";
      return  val; 
     })
-    .attr("x", function(d) { return x_pos_hours_across(d) + 4})
-    .attr("y", function(d) { var y_val = get_y_for_date(d) + cellHeight - 6; return y_val;})//function(d) { return y_pos_days_down(d) + cellHeight - 6})
+    .attr("x", function(d) { return get_x_for_time(d) + 4})
+    .attr("y", function(d) { return get_y_for_date(d) + cellHeight - 6;})
     .attr("width", cellWidth)
     .attr("height", cellHeight)
   items.append("svg:title")
@@ -124,29 +125,29 @@ console.log("items createds")
     // am
     for (var t = 6; t < 12; t++){
       svg.append("text")
-        .attr('x', x_pos_hours_across({"date": dt_str, "dep_time": t+":00 AM"}))
+        .attr('x', get_x_for_time({"date": dt_str, "dep_time": t+":00 AM"}))
         .attr('y', get_y_for_date(0) - 10)
-        .text(t)
+        .text(t + ' am')
         .attr('class', 'time-label')
     }
     //noon
     svg.append('text')
-      .attr('x', x_pos_hours_across({"date": dt_str, "dep_time": "12:00 PM"}))
+      .attr('x', get_x_for_time({"date": dt_str, "dep_time": "12:00 PM"}))
       .attr('y', get_y_for_date(0) - 10)
-      .text('12')
+      .text('12 pm')
       .attr('class', 'time-label')
     // pm
     for (var t = 1; t < 10; t++){
       svg.append("text")
-        .attr('x', x_pos_hours_across({"date": dt_str, "dep_time": (t)+":00 PM"}))
+        .attr('x', get_x_for_time({"date": dt_str, "dep_time": (t)+":00 PM"}))
         .attr('y', get_y_for_date(0) - 10)
-        .text(t)
+        .text(t + 'pm')
         .attr('class', 'time-label')
     
     }
 
     svg.append('text')
-      .attr('x',  x_pos_hours_across({"date": dt_str, "dep_time": "12:00 PM"}))
+      .attr('x',  get_x_for_time({"date": dt_str, "dep_time": "12:00 PM"}))
       .attr('y', get_y_for_date(0) - 35)
       .text('bus departure time')
       .attr('class', 'axis-label')
@@ -156,8 +157,8 @@ console.log("items createds")
 
     svg.append('text')
       .attr('class', 'axis-label')
-      .attr('x', x_days(0) - 45)
-      .attr('y', x_days(0) + 10)
+      .attr('x', x_labels - 45) 
+      .attr('y', x_labels + 10)
       .text('date')
       .attr('class', 'axis-label')
 
@@ -165,36 +166,38 @@ console.log("items createds")
   for (var m = parseInt(start_month); m <= parseInt(month(date_obj(last_date))); m++){
 
     svg.append("text")
-      .attr('x', x_days(0) - 55)
+      .attr('x', x_labels - 55)
       .attr('y', get_y_for_date({"date": dt_str, "dep_time": "10:00 AM"}) + 65)
       .text(function(d) { return month_name(dt)})
-      //.attr('transform', 'rotate(90, 40, 60)')
+      //.attr('transform', 'rotate(90, 40, 60)') //uhhh I dunno
       .attr('class', 'month-label h3')
 
      // date labels
-    for (var i=1; i<=31; i++){
-      dt = new Date(dt.getFullYear(), dt.getMonth(), i)
+     // todo moment.js for how many days are actually in a month
+     console.log(dt.getMonth())
+    while(dt.getMonth() < m){
+      dt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()+1)
       dt_str = d3.time.format(json_date_format)(dt)
       if (dt < start_date) continue;
 
      var day = day_in_week(dt)
       if (day == 6 || day == 1) {
         svg.append('rect')
-          .attr('x', x_days(0) + 40)
+          .attr('x', x_labels + 40)
           .attr('y', get_y_for_date({"date":dt_str, "dep_time": "10:00 AM"}) - 2)
           .attr('width', width - 40)
           .attr('height', 2)
       }
 
       svg.append("text")
-        .attr('x', x_days(0))
+        .attr('x', x_labels)
         .attr('y', get_y_for_date({"date":dt_str, "dep_time": "10:00 AM"}) + 18)
-        .text(i)
+        .text(dt.getDate())
         .attr('class', 'date-label')
     }
-    console.log("date labels done")
+    console.log("date labels done for ", month_name(dt))
 
-    dt = new Date(dt.getFullYear(), dt.getMonth()+1, 1)
+    dt = new Date(dt.getFullYear(), dt.getMonth(), 1)
   }
 
 })
