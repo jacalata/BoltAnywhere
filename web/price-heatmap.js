@@ -115,6 +115,10 @@ d3.json("schedules.json", function(error, json) {
     .attr("height", cellHeight)
   items.append("svg:title")
     .text(function(d) { return d.price + ", departs at " + d.dep_time})
+  items.append('text')
+    .attr('x', -100)
+    .attr('y', -100)
+    .text(function (d) { return JSON.stringify(d)})
 
 console.log("items createds")
 
@@ -157,10 +161,17 @@ console.log("items createds")
 
     svg.append('text')
       .attr('class', 'axis-label')
-      .attr('x', x_labels - 45) 
-      .attr('y', x_labels + 10)
+      .attr('x', x_labels) 
+      .attr('y', get_y_for_date(0) )
       .text('date')
       .attr('class', 'axis-label')
+
+    svg.append('rect')
+      .attr('x', x_labels + 40)
+      .attr('y', get_y_for_date(0) )          
+      .attr('width', 2)
+      .attr('height', height - get_y_for_date(0))
+      .attr('class', 'divider-line')
 
   // month labels ?
   for (var m = parseInt(start_month); m <= parseInt(month(date_obj(last_date))); m++){
@@ -174,9 +185,7 @@ console.log("items createds")
 
      // date labels
      // todo moment.js for how many days are actually in a month
-     console.log(dt.getMonth())
     while(dt.getMonth() < m){
-      dt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()+1)
       dt_str = d3.time.format(json_date_format)(dt)
       if (dt < start_date) continue;
 
@@ -187,6 +196,8 @@ console.log("items createds")
           .attr('y', get_y_for_date({"date":dt_str, "dep_time": "10:00 AM"}) - 2)
           .attr('width', width - 40)
           .attr('height', 2)
+          .attr('fill', 'grey')
+          .attr('class', 'divider-line')
       }
 
       svg.append("text")
@@ -194,8 +205,9 @@ console.log("items createds")
         .attr('y', get_y_for_date({"date":dt_str, "dep_time": "10:00 AM"}) + 18)
         .text(dt.getDate())
         .attr('class', 'date-label')
+
+      dt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()+1)
     }
-    console.log("date labels done for ", month_name(dt))
 
     dt = new Date(dt.getFullYear(), dt.getMonth(), 1)
   }
