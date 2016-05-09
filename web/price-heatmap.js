@@ -20,11 +20,10 @@ var day_in_week = d3.time.format("%w"), // day number of the week
     format = d3.time.format("%Y-%m-%d");
 
 
-
 var json_date_format = "%Y-%m-%d %H:%M:%S"
 
 var price_val = function(d) { (d.price && d.price.indexOf('$') >= 0) ? val = parseFloat(d.price.slice(1)) : val = Number.MAX_SAFE_INTEGER; return val}
-var date_obj = function(d) { return d3.time.format(json_date_format).parse(d.date)}
+var date_obj = function(d) { return moment(d.date).clone().toDate();}
 var dep_time_obj = function(d) {return d3.time.format("%H:%M %p").parse(d.dep_time)}
 var arr_time_obj = function(d) {return d3.time.format("%H:%M %p").parse(d.arr_time)}
 
@@ -48,54 +47,110 @@ var y_loc = function(d) {
 } 
 
 
+var scraped_routes;
+var scraped_at;
+var schedule_container;
+
+function receiveScheduleData(response) {
+  console.log(response);
+  scraped_routes = response.routes;
+  scraped_at = response.scraped_at;
+  display_schedules()
+}
+
+var tag = document.createElement("script");
+tag.src = 'https://boltproject.gitlab.io/BoltScraper/schedules.json?callback=receiveScheduleData';
+
+document.getElementsByTagName("head")[0].appendChild(tag);
+
+display_schedules = function(){
+  if (scraped_at){
+    parser_scraped_at = scraped_at.slice(0,4) + "-" + scraped_at.slice(4,6) + "-" + scraped_at.slice(6,8)
+    var date_scraped_at = moment(parser_scraped_at).clone();
+
+    var svg = d3.select("route-container") 
+              .append("svg")
+              .attr("width", width)
+              .attr("height", 30);
+    svg.append('text')
+      .text('(Prices last updated at ' + date_scraped_at.format('MMMM Do YYYY, h:mm:ss a') + ')')
+      .attr('x', 50)
+      .attr('y', 25)
+  }
+  display_choices(scraped_routes);
+  //default to route 0
+  route = scraped_routes[0]
+  console.log(route);
+  display_schedule(scraped_routes[0]);
+}
+
+display_choices = function(routes) {
+  routeSelector = document.getElementById('route-selector');
+  routeSelector.style.visibility = 'visible';
+  var routeOptions = []
+  for (var i = 0; i < routes.length; i++) {
+    routeSelector.options[i] = new Option(scraped_routes[i].origin + ' to ' + scraped_routes[i].destination, i)
+  }
+  routeSelector.value = 0;
+}
+
+change_route = function(){
+  console.log("changing!")
+  clear_schedule()
+  routeSelector = document.getElementById('route-selector');
+  var routeId = routeSelector.value;
+  console.log("loading new route: ", routeId)
+  display_schedule(scraped_routes[routeId])
+}
+
+clear_schedule = function(){
+  console.log("clearing")
+  var deletable = d3.select('#d3-container').select('svg')
+  deletable.remove();
+}
 
 
-d3.json("schedules.json", function(error, json) {
-
-  scraped_at = json["scraped_at"]
-  route = json.route
-  data = json.buses//.slice(150,201)
-  var end = data.length-1;
-  var first_day = new Date(data[0].date);
-  var last_day = new Date(data[end].date);
-  //ugh http://stackoverflow.com/questions/542938/how-do-i-get-the-number-of-days-between-two-dates-in-javascript
-  // todo use moment.js instead of eugh agh hack ew
-  var date_range = Math.floor(last_day - first_day ) / 86400000; height = 100 + 26 * date_range
-
-
-  var y = d3.time.scale().domain([first_day, last_day]).range([100, height]);
-  var get_y_for_date = function(d) { if (!d.date) return 100; return y(new Date(d.date))}
 
   var x = d3.scale.linear().domain([6, 20]).range([x_0, width-x_0])
   var get_x_for_time = function(d) { if (!d.date) return x_0; return x(dep_time_obj(d).getHours())}
 
+
   var colors = ['green'].concat(colorbrewer.PuBu[4].reverse()).concat('grey')
+  //manually chosen pricing buckets for different colors
   var color = d3.scale.linear()
       .domain([0, 5, 16, 25, 40, Number.MAX_SAFE_INTEGER])
       .range(colors);
+  console.log(colors);   
 
+
+display_schedule = function(route){
+  data = route.buses//.slice(150,201)
+  //console.log(data);
+  var end = data.length-1;
+  var first_day = moment(data[0].date).clone();
+  var last_day = moment(data[end].date).clone();
+  // ugh http://stackoverflow.com/questions/542938/how-do-i-get-the-number-of-days-between-two-dates-in-javascript
+  // todo use moment.js instead of eugh agh hack ew
+  var date_range = Math.abs(first_day.diff(last_day, 'days')) + 1;  //Math.floor(last_day - first_day ) / 86400000; height = 100 + 26 * date_range
+  height = date_range * 26 + 100;
+  console.log(height)
+
+  var y = d3.time.scale().domain([first_day, last_day]).range([100, height]);
+  var get_y_for_date = function(d) { 
+    if (!d.date) { return 100; } 
+    return y(moment(d.date).clone())
+  }
 
   start_date = date_obj(data[0])
   last_date = date_obj(data[end])
   start_month = month(start_date)
   start_day = day_of_month(start_date)
 
-
-  //Create SVG element
-  var svg = d3.select("#d3-container")
+  schedule_container = d3.select("#d3-container") 
               .append("svg")
               .attr("width", width)
               .attr("height", height);
-  if (scraped_at){
-
-  parser_scraped_at = scraped_at.slice(0,4) + "-" + scraped_at.slice(4,6) + "-" + scraped_at.slice(6,8)
-  var date_scraped_at = new Date(parser_scraped_at);
-  svg.append('text')
-      .text('(Prices last updated at ' + date_scraped_at.toDateString() + ")")
-      .attr('x', 50)
-      .attr('y', get_y_for_date(0) - 80)
-}
-  var items = svg.selectAll("g")
+  var items = schedule_container.selectAll("g")
      .data(data)
      .enter().append('g')
   items.append("rect")
@@ -116,100 +171,103 @@ d3.json("schedules.json", function(error, json) {
   items.append("svg:title")
     .text(function(d) { return d.price + ", departs at " + d.dep_time})
   items.append('text')
-    .attr('x', -100)
-    .attr('y', -100)
+    .attr('x', "-100px")
+    .attr('y', "-100px")
     .text(function (d) { return JSON.stringify(d)})
 
-console.log("items createds")
+  console.log("items createds")
 
   var last_date = data[data.length - 1]
-  var dt = new Date(data[0].date)
-    var dt_str = d3.time.format(json_date_format)(dt)
+  var dt = moment(data[0].date).clone()
+  console.log("first_day", data[0].date);
+  var dt_str = d3.time.format(json_date_format)(dt.toDate())
+  console.log("dt_str created:", dt_str, "from:", dt);
     // time labels
     // am
-    for (var t = 6; t < 12; t++){
-      svg.append("text")
-        .attr('x', get_x_for_time({"date": dt_str, "dep_time": t+":00 AM"}))
-        .attr('y', get_y_for_date(0) - 10)
-        .text(t + ' am')
-        .attr('class', 'time-label')
-    }
-    //noon
-    svg.append('text')
-      .attr('x', get_x_for_time({"date": dt_str, "dep_time": "12:00 PM"}))
+  for (var t = 6; t < 12; t++){
+    schedule_container.append("text")
+      .attr('x', get_x_for_time({"date": dt_str, "dep_time": t+":00 AM"}))
       .attr('y', get_y_for_date(0) - 10)
-      .text('12 pm')
+      .text(t + ' am')
       .attr('class', 'time-label')
-    // pm
-    for (var t = 1; t < 10; t++){
-      svg.append("text")
-        .attr('x', get_x_for_time({"date": dt_str, "dep_time": (t)+":00 PM"}))
-        .attr('y', get_y_for_date(0) - 10)
-        .text(t + 'pm')
-        .attr('class', 'time-label')
-    
-    }
+  }
+  //noon
+  schedule_container.append('text')
+    .attr('x', get_x_for_time({"date": dt_str, "dep_time": "12:00 PM"}))
+    .attr('y', get_y_for_date(0) - 10)
+    .text('12 pm')
+    .attr('class', 'time-label')
+  // pm
+  for (var t = 1; t < 10; t++){
+    schedule_container.append("text")
+      .attr('x', get_x_for_time({"date": dt_str, "dep_time": (t)+":00 PM"}))
+      .attr('y', get_y_for_date(0) - 10)
+      .text(t + 'pm')
+      .attr('class', 'time-label')
+  
+  }
 
-    svg.append('text')
-      .attr('x',  get_x_for_time({"date": dt_str, "dep_time": "12:00 PM"}))
-      .attr('y', get_y_for_date(0) - 35)
-      .text('bus departure time')
-      .attr('class', 'axis-label')
+  schedule_container.append('text')
+    .attr('x',  get_x_for_time({"date": dt_str, "dep_time": "12:00 PM"}))
+    .attr('y', get_y_for_date(0) - 35)
+    .text('bus departure time')
+    .attr('class', 'axis-label')
 
-    console.log("time labels done")
+  console.log("time labels done")
 
 
-    svg.append('text')
-      .attr('class', 'axis-label')
-      .attr('x', x_labels) 
-      .attr('y', get_y_for_date(0) )
-      .text('date')
-      .attr('class', 'axis-label')
+  schedule_container.append('text')
+    .attr('class', 'axis-label')
+    .attr('x', x_labels) 
+    .attr('y', get_y_for_date(0) )
+    .text('date')
+    .attr('class', 'axis-label')
 
-    svg.append('rect')
-      .attr('x', x_labels + 40)
-      .attr('y', get_y_for_date(0) )          
-      .attr('width', 2)
-      .attr('height', height - get_y_for_date(0))
-      .attr('class', 'divider-line')
+  schedule_container.append('rect')
+    .attr('x', x_labels + 40)
+    .attr('y', get_y_for_date(0) )          
+    .attr('width', 2)
+    .attr('height', height - get_y_for_date(0))
+    .attr('class', 'divider-line')
+
+  console.log("divider lines done")
 
   // month labels ?
   for (var m = parseInt(start_month); m <= parseInt(month(date_obj(last_date))); m++){
 
-    svg.append("text")
+    schedule_container.append("text")
       .attr('x', x_labels - 55)
       .attr('y', get_y_for_date({"date": dt_str, "dep_time": "10:00 AM"}) + 65)
-      .text(function(d) { return month_name(dt)})
+      .text(function(d) { return month_name(dt.toDate())})
       //.attr('transform', 'rotate(90, 40, 60)') //uhhh I dunno
       .attr('class', 'month-label h3')
 
      // date labels
      // todo moment.js for how many days are actually in a month
-    while(dt.getMonth() < m){
-      dt_str = d3.time.format(json_date_format)(dt)
+    while(dt.toDate().getMonth() < m){
+      dt_str = d3.time.format(json_date_format)(dt.toDate())
       if (dt < start_date) continue;
 
-     var day = day_in_week(dt)
+     var day = day_in_week(dt.toDate())
       if (day == 6 || day == 1) {
-        svg.append('rect')
+        schedule_container.append('rect')
           .attr('x', x_labels + 40)
           .attr('y', get_y_for_date({"date":dt_str, "dep_time": "10:00 AM"}) - 2)
           .attr('width', width - 40)
-          .attr('height', 2)
+          .attr('height', "2px")
           .attr('fill', 'grey')
           .attr('class', 'divider-line')
       }
 
-      svg.append("text")
+      schedule_container.append("text")
         .attr('x', x_labels)
         .attr('y', get_y_for_date({"date":dt_str, "dep_time": "10:00 AM"}) + 18)
-        .text(dt.getDate())
+        .text(dt.get('date'))
         .attr('class', 'date-label')
 
-      dt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()+1)
+      dt = dt.add(1, 'day'); //moment(dt.getFullYear(), dt.getMonth(), dt.getDate()+1).clone()
     }
-
-    dt = new Date(dt.getFullYear(), dt.getMonth(), 1)
+    dt = moment([dt.get('year'), dt.get('month'), 1])
   }
 
-})
+}
